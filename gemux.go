@@ -16,12 +16,12 @@ type ServeMux struct {
 	wildcardChild   *ServeMux               // * path
 
 	// NotFoundHandler is called when there is no path corrosponding to
-	// the request URL. If NotFoundHandler is nil, `http.NotFoundHandler`
+	// the request URL. If NotFoundHandler is nil, http.NotFoundHandler
 	// will be used.
 	NotFoundHandler http.Handler
 
 	// MethodNotAllowedHandler is called when there is no method corrosponding
-	// to the request URL. If MethodNotAllowedHandler is nil, `MethodNotAllowedHandler`
+	// to the request URL. If MethodNotAllowedHandler is nil, MethodNotAllowedHandler
 	// will be used.
 	MethodNotAllowedHandler http.Handler
 }
