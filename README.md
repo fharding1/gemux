@@ -8,19 +8,19 @@
 package main
 
 func main() {
-    r := new(gemux.ServeMux)
+    mux := new(gemux.ServeMux)
 
-    r.Handle("/", "*", http.HandlerFunc(healthHandler)) // write your own method mux within the handler
-    r.Handle("/posts", http.MethodGet, http.HandlerFunc(getPostsHandler))
-    r.Handle("/posts", http.MethodPost, http.HandlerFunc(createPostHandler))
-    r.Handle("/posts/*", http.MethodGet, http.HandlerFunc(getPostHandler)) // use gemux.PathParameters to extract wildcard values
-    r.Handle("/posts/*", http.MethodDelete, http.HandlerFunc(deletePostHandler))
-    r.Handle("/posts/*/comments", http.MethodGet, http.HandlerFunc(getCommentsHandler))
-    r.Handle("/posts/*/comments", http.MethodPost, http.HandlerFunc(createCommentHandler))
-    r.Handle("/posts/*/comments/*", http.MethodGet, http.HandlerFunc(getCommentHandler))
-    r.Handle("/posts/*/comments/*", http.MethodDelete, http.HandlerFunc(deleteCommentHandler))
+    mux.Handle("/", "*", http.HandlerFunc(healthHandler)) // write your own method mux within the handler
+    mux.Handle("/posts", http.MethodGet, http.HandlerFunc(getPostsHandler))
+    mux.Handle("/posts", http.MethodPost, http.HandlerFunc(createPostHandler))
+    mux.Handle("/posts/*", http.MethodGet, http.HandlerFunc(getPostHandler)) // use gemux.PathParameters to extract wildcard values
+    mux.Handle("/posts/*", http.MethodDelete, http.HandlerFunc(deletePostHandler))
+    mux.Handle("/posts/*/comments", http.MethodGet, http.HandlerFunc(getCommentsHandler))
+    mux.Handle("/posts/*/comments", http.MethodPost, http.HandlerFunc(createCommentHandler))
+    mux.Handle("/posts/*/comments/*", http.MethodGet, http.HandlerFunc(getCommentHandler))
+    mux.Handle("/posts/*/comments/*", http.MethodDelete, http.HandlerFunc(deleteCommentHandler))
 
-    http.ListenAndServe(":8080", r)
+    http.ListenAndServe(":8080", mux)
 }
 ```
 
@@ -40,8 +40,8 @@ There are already a billion HTTP Go multiplexers, so why was `gemux` created?
 Route based on paths strictly, but allow wildcards for path parameters such as a resource ID.
 
 ```go
-r.Handle("/posts", http.MethodPost, http.HandlerFunc(createPostHandler))
-r.Handle("/posts/*", http.MethodGet, http.HandlerFunc(getPostHandler))
+mux.Handle("/posts", http.MethodPost, http.HandlerFunc(createPostHandler))
+mux.Handle("/posts/*", http.MethodGet, http.HandlerFunc(getPostHandler))
 ```
 
 ### Strict Method Based Routing (with wildcards)
@@ -49,7 +49,7 @@ r.Handle("/posts/*", http.MethodGet, http.HandlerFunc(getPostHandler))
 Route based on methods, and allow wildcard methods if you need to write your own method multiplexer.
 
 ```go
-r.Handle("/posts", "*", http.HandlerFunc(createPostHandler)) // implement your own method muxer
+mux.Handle("/posts", "*", http.HandlerFunc(createPostHandler)) // implement your own method muxer
 ```
 
 ### Context Path Parameters
