@@ -92,8 +92,10 @@ func (mux *ServeMux) methodNotAllowedHandler() http.Handler {
 	return MethodNotAllowedHandler()
 }
 
-// Handle registers a handler for the given pattern and method. If a handler matching the
-// pattern and method already exists, Handle panics.
+// Handle registers a handler for the given pattern and method on the muxer.
+// The pattern should be the exact URL to match, with the exception of wildcards
+// ("*"), which can be used for a single segment of a path (split on "/") to match
+// anything. A wildcard method of "*" can also be used to match any method.
 func (mux *ServeMux) Handle(pattern string, method string, handler http.Handler) {
 	if pattern == "/" {
 		mux.handleRoot(pattern, method, handler)
@@ -135,16 +137,8 @@ func (mux *ServeMux) handleRoot(pattern string, method string, handler http.Hand
 	}
 
 	if method == "*" {
-		if mux.wildcardHandler != nil {
-			panic("wildcard handler already exists")
-		}
-
 		mux.wildcardHandler = handler
 	} else {
-		if _, ok := mux.handlers[method]; ok {
-			panic("handler for that method already exists")
-		}
-
 		mux.handlers[method] = handler
 	}
 }
