@@ -100,7 +100,7 @@ mux.MethodNotAllowedHandler = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 
 ### It's Fast... Enough.
 
-`gemux` isn't slow, but it's certainly not fast, either. If you're writing an HTTP service you're probably doing a bunch of I/O, so your multiplexer speed is almost totally insignificant. Since `gemux` doesn't try to do anything clever to be fast ([the root of all evil](http://wiki.c2.com/?PrematureOptimization)) it's more maintainable than other multiplexers.
+`gemux` isn't slow, and it's not fast either. If you're writing an HTTP service you're probably doing a bunch of I/O, so your multiplexer speed is almost totally insignificant. Since `gemux` doesn't try to do anything clever to be fast ([the root of all evil](http://wiki.c2.com/?PrematureOptimization)) it's more maintainable than other multiplexers.
 
 ### Sticks to the Standard
 
