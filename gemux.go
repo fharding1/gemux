@@ -29,27 +29,23 @@ type ServeMux struct {
 // ServeHTTP dispatches the request to the handler whose pattern and method
 // matches the request URL and method.
 func (mux *ServeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var head string
-	head, r.URL.Path = shiftPath(r.URL.Path)
+	for head, tail := shiftPath(r.URL.Path); head != ""; head, tail = shiftPath(tail) {
+		if mux.wildcardChild != nil {
+			r = r.WithContext(appendPathParameter(r.Context(), head))
+			mux = mux.wildcardChild
+			continue
+		}
 
-	if head == "" {
-		mux.serveHandler(w, r)
-		return
+		child, ok := mux.children[head]
+		if !ok {
+			mux.notFoundHandler().ServeHTTP(w, r)
+			return
+		}
+
+		mux = child
 	}
 
-	if mux.wildcardChild != nil {
-		ctx := appendPathParameter(r.Context(), head)
-		mux.wildcardChild.ServeHTTP(w, r.WithContext(ctx))
-		return
-	}
-
-	child, ok := mux.children[head]
-	if !ok {
-		mux.notFoundHandler().ServeHTTP(w, r)
-		return
-	}
-
-	child.ServeHTTP(w, r)
+	mux.serveHandler(w, r)
 }
 
 // notFoundHandler returns the mux NotFoundHandler if there is one, otherwise
@@ -103,10 +99,6 @@ func (mux *ServeMux) Handle(pattern string, method string, handler http.Handler)
 		return
 	}
 
-	if mux.children == nil {
-		mux.children = make(map[string]*ServeMux)
-	}
-
 	head, tail := shiftPath(pattern)
 
 	if head == "*" {
@@ -119,6 +111,10 @@ func (mux *ServeMux) Handle(pattern string, method string, handler http.Handler)
 
 		mux.wildcardChild.Handle(tail, method, handler)
 		return
+	}
+
+	if mux.children == nil {
+		mux.children = make(map[string]*ServeMux)
 	}
 
 	if mux.children[head] == nil {
