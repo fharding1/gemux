@@ -1,6 +1,6 @@
 # Good Enough Multiplexer (gemux)
 
-`gemux` to be "good enough" for most Go web APIs (unlike `http.ServeMux`), and doesn't attempt to cover all use cases (like `gorilla/mux`).
+`gemux` to be "good enough" for most Go web APIs unlike `http.ServeMux`, and doesn't attempt to cover all use cases like `gorilla/mux`.
 
 ## Usage
 
@@ -28,7 +28,7 @@ func main() {
 
 There are already a billion HTTP Go multiplexers, so why was `gemux` created?
 
-* While it's [possible](https://blog.merovius.de/2017/06/18/how-not-to-use-an-http-router.html) to use the standard library `net/http.ServeMux`, it's insufficient for most projects without writing lots of redundant code that's hard to follow (no quick list of routes)
+* While it's [possible](https://blog.merovius.de/2017/06/18/how-not-to-use-an-http-router.html) to use the standard library `net/http.ServeMux`, it's insufficient for most projects without writing lots of redundant code that's hard to follow (no quick reference list of routes)
 * Libraries like `gorilla/mux` are great, but they intend to cover many use cases and therefore have too much cleverness/magic, as well as a very large API, which means there's a high learning curve and it's sometimes difficult to understand what exactly is going on
 * Other libraries weigh speed over practicality and readability, causing weird APIs with hard to read codebases
 * Some libraries disallow things the HTTP specification allows (e.g. treat methods as something other than just a plain string)
@@ -39,9 +39,18 @@ There are already a billion HTTP Go multiplexers, so why was `gemux` created?
 
 Route based on paths strictly, but allow wildcards for path parameters such as a resource ID.
 
+```go
+r.Handle("/posts", http.MethodPost, http.HandlerFunc(createPostHandler))
+r.Handle("/posts/*", http.MethodGet, http.HandlerFunc(getPostHandler))
+```
+
 ### Strict Method Based Routing (with wildcards)
 
 Route based on methods, and allow wildcard methods if you need to write your own method multiplexer.
+
+```go
+r.Handle("/posts", "*", http.HandlerFunc(createPostHandler)) // implement your own method muxer
+```
 
 ### Context Path Parameters
 
