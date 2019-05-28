@@ -1,6 +1,6 @@
 # Good Enough Multiplexer (gemux)
 
-`gemux` to be "good enough" for most Go web APIs unlike `http.ServeMux`, and doesn't attempt to cover all use cases like `gorilla/mux`.
+`gemux` is the good enough multiplexer. It aims to provide functionality that is good enough for the majority of HTTP services.
 
 ## Usage
 
