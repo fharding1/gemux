@@ -29,23 +29,25 @@ type ServeMux struct {
 // ServeHTTP dispatches the request to the handler whose pattern and method
 // matches the request URL and method.
 func (mux *ServeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	current := mux
+
 	for head, tail := shiftPath(r.URL.Path); head != ""; head, tail = shiftPath(tail) {
-		if mux.wildcardChild != nil {
+		if current.wildcardChild != nil {
 			r = r.WithContext(appendPathParameter(r.Context(), head))
-			mux = mux.wildcardChild
+			current = current.wildcardChild
 			continue
 		}
 
-		child, ok := mux.children[head]
+		child, ok := current.children[head]
 		if !ok {
-			mux.notFoundHandler().ServeHTTP(w, r)
+			current.notFoundHandler().ServeHTTP(w, r)
 			return
 		}
 
-		mux = child
+		current = child
 	}
 
-	mux.serveHandler(w, r)
+	current.serveHandler(w, r)
 }
 
 // notFoundHandler returns the mux NotFoundHandler if there is one, otherwise
@@ -58,6 +60,8 @@ func (mux *ServeMux) notFoundHandler() http.Handler {
 	return http.NotFoundHandler()
 }
 
+// serveHandler serves the request to the proper method handler, or calls the
+// 404 or 405 handler.
 func (mux *ServeMux) serveHandler(w http.ResponseWriter, r *http.Request) {
 	if mux.handlers == nil {
 		mux.notFoundHandler().ServeHTTP(w, r)
@@ -94,7 +98,15 @@ func (mux *ServeMux) methodNotAllowedHandler() http.Handler {
 // anything. A wildcard method of "*" can also be used to match any method.
 func (mux *ServeMux) Handle(pattern string, method string, handler http.Handler) {
 	if pattern == "/" {
-		mux.handleRoot(pattern, method, handler)
+		if mux.handlers == nil {
+			mux.handlers = make(map[string]http.Handler)
+		}
+
+		if method == "*" {
+			mux.wildcardHandler = handler
+		} else {
+			mux.handlers[method] = handler
+		}
 
 		return
 	}
@@ -103,10 +115,7 @@ func (mux *ServeMux) Handle(pattern string, method string, handler http.Handler)
 
 	if head == "*" {
 		if mux.wildcardChild == nil {
-			mux.wildcardChild = &ServeMux{
-				MethodNotAllowedHandler: mux.MethodNotAllowedHandler,
-				NotFoundHandler:         mux.NotFoundHandler,
-			}
+			mux.wildcardChild = mux.newChild()
 		}
 
 		mux.wildcardChild.Handle(tail, method, handler)
@@ -118,24 +127,18 @@ func (mux *ServeMux) Handle(pattern string, method string, handler http.Handler)
 	}
 
 	if mux.children[head] == nil {
-		mux.children[head] = &ServeMux{
-			MethodNotAllowedHandler: mux.MethodNotAllowedHandler,
-			NotFoundHandler:         mux.NotFoundHandler,
-		}
+		mux.children[head] = mux.newChild()
 	}
 
 	mux.children[head].Handle(tail, method, handler)
 }
 
-func (mux *ServeMux) handleRoot(pattern string, method string, handler http.Handler) {
-	if mux.handlers == nil {
-		mux.handlers = make(map[string]http.Handler)
-	}
-
-	if method == "*" {
-		mux.wildcardHandler = handler
-	} else {
-		mux.handlers[method] = handler
+// newChild returns a pointer to a new ServeMux with NotFoundHandler
+// and MethodNotAllowedHandler set to the parent mux values.
+func (mux *ServeMux) newChild() *ServeMux {
+	return &ServeMux{
+		MethodNotAllowedHandler: mux.MethodNotAllowedHandler,
+		NotFoundHandler:         mux.NotFoundHandler,
 	}
 }
 
@@ -168,6 +171,7 @@ const (
 	pathParametersKey contextKey = iota
 )
 
+// appendPathParameter pushes a path parameter to the given context.
 func appendPathParameter(ctx context.Context, pathParameter string) context.Context {
 	ctxPathParameters := ctx.Value(pathParametersKey)
 	if ctxPathParameters == nil {
