@@ -14,14 +14,12 @@ package main
 func main() {
     mux := new(gemux.ServeMux)
 
-    mux.Handle("/", "*", http.HandlerFunc(healthHandler)) // write your own method mux within the handler
+    mux.Handle("/", http.MethodGet, http.HandlerFunc(healthHandler))
     mux.Handle("/posts", http.MethodGet, http.HandlerFunc(getPostsHandler))
     mux.Handle("/posts", http.MethodPost, http.HandlerFunc(createPostHandler))
-    mux.Handle("/posts/*", http.MethodGet, http.HandlerFunc(getPostHandler)) // use gemux.PathParameters to extract wildcard values
     mux.Handle("/posts/*", http.MethodDelete, http.HandlerFunc(deletePostHandler))
-    mux.Handle("/posts/*/comments", http.MethodGet, http.HandlerFunc(getCommentsHandler))
     mux.Handle("/posts/*/comments", http.MethodPost, http.HandlerFunc(createCommentHandler))
-    mux.Handle("/posts/*/comments/*", http.MethodGet, http.HandlerFunc(getCommentHandler))
+    mux.Handle("/posts/*/comments", http.MethodGet, http.HandlerFunc(getCommentsHandler))
     mux.Handle("/posts/*/comments/*", http.MethodDelete, http.HandlerFunc(deleteCommentHandler))
 
     http.ListenAndServe(":8080", mux)
