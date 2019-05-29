@@ -1,6 +1,7 @@
 package gemux
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -282,6 +283,55 @@ func TestServeMux(t *testing.T) {
 
 			if body := rw.Body.String(); body != tt.expectedResponseBody {
 				t.Errorf("expected response body %q, got %q", tt.expectedResponseBody, body)
+			}
+		})
+	}
+}
+
+func TestPathParameter(t *testing.T) {
+	testCases := []struct {
+		name              string
+		ctx               context.Context
+		n                 int
+		expectedParameter string
+	}{
+		{
+			name:              "ordinary",
+			ctx:               context.WithValue(context.Background(), pathParametersKey, []string{"foo", "42"}),
+			n:                 1,
+			expectedParameter: "42",
+		},
+		{
+			name:              "under bounds",
+			ctx:               context.WithValue(context.Background(), pathParametersKey, []string{"foo", "42"}),
+			n:                 -1,
+			expectedParameter: "",
+		},
+		{
+			name:              "over bounds",
+			ctx:               context.WithValue(context.Background(), pathParametersKey, []string{"foo", "42"}),
+			n:                 2,
+			expectedParameter: "",
+		},
+		{
+			name:              "no context value",
+			ctx:               context.Background(),
+			n:                 0,
+			expectedParameter: "",
+		},
+		{
+			name:              "wrong type",
+			ctx:               context.WithValue(context.Background(), pathParametersKey, "foo"),
+			n:                 0,
+			expectedParameter: "",
+		},
+	}
+
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			actualParameter := PathParameter(tt.ctx, tt.n)
+			if tt.expectedParameter != actualParameter {
+				t.Errorf("expected parameter %s but got %s", tt.expectedParameter, actualParameter)
 			}
 		})
 	}

@@ -156,6 +156,10 @@ func PathParameter(ctx context.Context, n int) string {
 		return ""
 	}
 
+	if n < 0 || n >= len(pathParameters) {
+		return ""
+	}
+
 	return pathParameters[n]
 }
 
