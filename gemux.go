@@ -153,6 +153,15 @@ func PathParameters(ctx context.Context) []string {
 	return pathParameters.([]string)
 }
 
+// MethodNotAllowedHandler returns a simple request handler that replies to
+// each request with a "405 method not allowed" reply and writes the 405 status
+// code.
+func MethodNotAllowedHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "405 method not allowed", http.StatusMethodNotAllowed)
+	})
+}
+
 // shiftPath is (ironically) stolen from
 // https://blog.merovius.de/2017/06/18/how-not-to-use-an-http-router.html
 // and is the fundamental building block for this entire library.
