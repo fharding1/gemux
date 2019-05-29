@@ -62,13 +62,8 @@ Extract path wildcard values via the request context.
 
 ```go
 func getPostHandler(w http.ResponseWriter, r *http.Request) {
-    pathParameters := gemux.PathParameters(r.Context())
-    if len(pathParameters) != 1 {
-        http.Error(w, "got an unexpected number of path parameters, the muxer is broken", http.StatusInternalServerError)
-        return
-    }
-
-    postID, err := strconv.ParseInt(pathParameters[0], 10, 64)
+    rawPostID := gemux.PathParameter(r.Context(), 0)
+    postID, err := strconv.ParseInt(rawPostID, 10, 64)
     if err != nil {
         http.Error(w, err.Error(), http.StatusBadRequest)
         return
