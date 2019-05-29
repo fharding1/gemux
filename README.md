@@ -58,7 +58,7 @@ mux.Handle("/posts", "*", http.HandlerFunc(createPostHandler)) // implement your
 
 ### Context Path Parameters
 
-Extract path wildcard values via the request context. Some request multiplexers allow named path parameters. `gemux` does not because there is only a slight benifit advantage of doing this (reusable path parameter parsers), and it would add complexity.
+Extract path wildcard values via the request context.
 
 ```go
 func getPostHandler(w http.ResponseWriter, r *http.Request) {
