@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/golang:1.12
+    steps:
+      - checkout
+      - run: diff -u <(echo -n) <(gofmt -d -s .) # ensure code is formatted with the simplify flag
+      - run: go get -u golang.org/x/lint/golint
+      - run: golint
+      - run: go test -v
