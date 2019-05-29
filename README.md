@@ -2,6 +2,7 @@
 
 [![Godoc](https://godoc.org/github.com/fharding1/gemux?status.svg)](http://godoc.org/github.com/fharding1/gemux)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CircleCI](https://circleci.com/gh/fharding1/gemux.svg?style=svg)](https://circleci.com/gh/fharding1/gemux)
 
 `gemux` is the good enough multiplexer. It aims to provide functionality that is good enough for the majority of HTTP services.
 
