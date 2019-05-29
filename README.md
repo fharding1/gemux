@@ -30,10 +30,12 @@ func main() {
 
 ## Rationale
 
-* While it's [possible](https://blog.merovius.de/2017/06/18/how-not-to-use-an-http-router.html) to use the standard library `net/http.ServeMux` for basic projects, it's insufficient for most projects without writing lots of redundant code that's hard to follow (also no quick reference list of routes if you go with the approach in that blog post)
-* Libraries like `gorilla/mux` and `echo` are great, but they aim to cover many use cases and therefore have too much cleverness/magic, as well as a very large API, which means there's a high learning curve and it's sometimes difficult to understand what exactly is going on
-* Other libraries weigh speed over practicality and readability, resulting in weird APIs with hard to read codebases
-* Some libraries limit behavior in weird ways, such as limiting you to only certain methods
+In every single HTTP API I write:
+
+* I want to multiplex requests based on the path and the method of the request
+* I want to be able to capture path parameters (e.g. capture `42` from `/posts/42`)
+
+So this is all the functionality `gemux` provides. This is good enough for almost all HTTP APIs. If it isn't good enough for yours, you should use another router, such as [gorilla/mux](https://github.com/gorilla/mux).
 
 ## Features
 
