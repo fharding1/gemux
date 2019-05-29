@@ -49,7 +49,7 @@ mux.Handle("/posts/*", http.MethodGet, http.HandlerFunc(getPostHandler))
 
 ### Strict Method Based Routing (with wildcards)
 
-Route based on methods, and allow wildcard methods if you need to write your own method multiplexer.
+Route based on methods, and allow wildcard methods if you need to write your own method multiplexer (or don't care about methods for some reason).
 
 ```go
 mux.Handle("/users", http.MethodGet, http.HandlerFunc(createPostHandler)) // implement your own method muxer
@@ -94,11 +94,7 @@ mux.MethodNotAllowedHandler = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 })
 ```
 
-### Very Small API
-
-`gemux` has a very small exported API, and not much "magic" within the `Handle` function (such as named path parameters or regular expressions) which means it's easier to learn than other multiplexer libraries.
-
-### Just Standard Library Dependencies
+### No External Dependencies
 
 `gemux` does not depend upon any libraries outside of the standard library.
 
@@ -106,6 +102,22 @@ mux.MethodNotAllowedHandler = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 
 `gemux` isn't slow, and it's not fast either. If you're writing an HTTP service you're probably doing a bunch of I/O, so your multiplexer speed is almost totally insignificant. Since `gemux` doesn't try to do anything clever to be fast ([the root of all evil](http://wiki.c2.com/?PrematureOptimization)) it's more maintainable than other multiplexers.
 
-### Sticks to the Standard
+## Won't Fix
 
-`gemux` handlers are just `http.Handler`s so you can easily plug in other middlewares without writing wrapper functions. `gemux` also recognizes that HTTP methods are ultimately just strings, so it doesn't do anything weird like provide helper functions named after methods (e.g. `router.GET()`). You can use `http.MethodGet` if you need a GET method.
+There many features common in HTTP multiplexers that `gemux` does not and will not support.
+
+### Subrouters
+
+Subrouters are often a source of complexity without any real advantages. If you need subrouters, you can implement your own solution using this library, or just use another library like `gorilla/mux`.
+
+### HandleFunc
+
+There's no reason to have two methods that do the same thing. If you have an `http.HandlerFunc`, wrap it with `http.HandlerFunc` to make it an `http.Handler`.
+
+### Middlewares
+
+A middleware should just be a function that takes an `http.Handler` and returns one. Since you can already use middlewares this way, there's no reason for `gemux` to handle them.
+
+### Method Helpers
+
+There's no reason to have multiple methods for doing the same thing. If you need to handle a `GET`, just pass `http.MethodGet` to `gemux.ServeMux.Handle`.
