@@ -142,15 +142,21 @@ func (mux *ServeMux) newChild() *ServeMux {
 	}
 }
 
-// PathParameters returns all the path parameters that were set when
-// ServeHTTP was called on a request.
-func PathParameters(ctx context.Context) []string {
-	pathParameters := ctx.Value(pathParametersKey)
-	if pathParameters == nil {
-		return nil
+// PathParameter returns the nth path parameter from the request
+// context. It returns an empty string if no value exists at the
+// given index.
+func PathParameter(ctx context.Context, n int) string {
+	contextValue := ctx.Value(pathParametersKey)
+	if contextValue == nil {
+		return ""
 	}
 
-	return pathParameters.([]string)
+	pathParameters, ok := contextValue.([]string)
+	if !ok {
+		return ""
+	}
+
+	return pathParameters[n]
 }
 
 // MethodNotAllowedHandler returns a simple request handler that replies to
@@ -182,12 +188,14 @@ const (
 
 // appendPathParameter pushes a path parameter to the given context.
 func appendPathParameter(ctx context.Context, pathParameter string) context.Context {
-	ctxPathParameters := ctx.Value(pathParametersKey)
-	if ctxPathParameters == nil {
-		ctxPathParameters = []string{}
+	var pathParameters []string
+
+	if contextValue := ctx.Value(pathParametersKey); contextValue != nil {
+		value, ok := contextValue.([]string)
+		if ok {
+			pathParameters = value
+		}
 	}
 
-	pathParameters := append(ctxPathParameters.([]string), pathParameter)
-
-	return context.WithValue(ctx, pathParametersKey, pathParameters)
+	return context.WithValue(ctx, pathParametersKey, append(pathParameters, pathParameter))
 }

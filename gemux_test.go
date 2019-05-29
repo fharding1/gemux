@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 )
 
@@ -17,9 +16,12 @@ func stringHandler(s string) http.Handler {
 
 func pathParametersHandler(t *testing.T, s string, expectedParams []string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		params := PathParameters(r.Context())
-		if !reflect.DeepEqual(expectedParams, params) {
-			t.Errorf("expected path parameters %v, but got %v", expectedParams, params)
+		ctx := r.Context()
+		for i, expected := range expectedParams {
+			actual := PathParameter(ctx, i)
+			if expected != actual {
+				t.Errorf("expected path parameter %v at index %d, but got %v", expected, i, actual)
+			}
 		}
 
 		io.WriteString(w, s)
@@ -315,12 +317,13 @@ func ExampleServeMux() {
 	// get post comments
 }
 
-func ExamplePathParameters() {
+func ExamplePathParameter() {
 	mux := new(ServeMux)
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pathParameters := PathParameters(r.Context())
-		fmt.Println(pathParameters)
+		ctx := r.Context()
+		fmt.Println(PathParameter(ctx, 0))
+		fmt.Println(PathParameter(ctx, 1))
 	})
 
 	mux.Handle("/foo/*/bar/*", http.MethodGet, handler)
@@ -331,7 +334,8 @@ func ExamplePathParameters() {
 	fmt.Println(rw.Body.String())
 
 	// Output:
-	// [test 92]
+	// test
+	// 92
 }
 
 func BenchmarkServeHTTP(b *testing.B) {
