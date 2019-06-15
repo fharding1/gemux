@@ -388,102 +388,102 @@ func ExamplePathParameter() {
 	// 92
 }
 
+var benchmarkHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
+
+var benchmarkTestCases = []struct {
+	name          string
+	register      []handlerArgs
+	requestURL    string
+	requestMethod string
+}{
+	{
+		name: "one static path",
+		register: []handlerArgs{
+			{
+				pattern: "/foo",
+				method:  http.MethodGet,
+				handler: benchmarkHandler,
+			},
+		},
+		requestURL:    "/foo",
+		requestMethod: http.MethodGet,
+	},
+	{
+		name: "one wildcard path",
+		register: []handlerArgs{
+			{
+				pattern: "/*",
+				method:  http.MethodGet,
+				handler: benchmarkHandler,
+			},
+		},
+		requestURL:    "/foo",
+		requestMethod: http.MethodGet,
+	},
+	{
+		name: "one wildcard path and method",
+		register: []handlerArgs{
+			{
+				pattern: "/*",
+				method:  "*",
+				handler: benchmarkHandler,
+			},
+		},
+		requestURL:    "/foo",
+		requestMethod: http.MethodGet,
+	},
+	{
+		name: "short path with many routes",
+		register: []handlerArgs{
+			{"/", http.MethodGet, benchmarkHandler},
+			{"/openapi.yaml", http.MethodGet, benchmarkHandler},
+			{"/users", http.MethodPost, benchmarkHandler},
+			{"/users/*", http.MethodGet, benchmarkHandler},
+			{"/users/*", http.MethodPatch, benchmarkHandler},
+			{"/users/*", http.MethodDelete, benchmarkHandler},
+			{"/schemas", http.MethodGet, benchmarkHandler},
+			{"/schemas", http.MethodPost, benchmarkHandler},
+			{"/schemas/*", http.MethodGet, benchmarkHandler},
+			{"/events", http.MethodGet, benchmarkHandler},
+			{"/events/*", http.MethodPut, benchmarkHandler},
+			{"/events/*", http.MethodGet, benchmarkHandler},
+			{"/events/*/stats", http.MethodGet, benchmarkHandler},
+			{"/events/*/matches", http.MethodGet, benchmarkHandler},
+			{"/events/*/matches", http.MethodGet, benchmarkHandler},
+			{"/events/*/matches/*", http.MethodGet, benchmarkHandler},
+			{"/events/*/matches/*/reports/*", http.MethodPost, benchmarkHandler},
+		},
+		requestURL:    "/openapi.yaml",
+		requestMethod: "GET",
+	},
+	{
+		name: "very deep static path",
+		register: []handlerArgs{
+			{
+				pattern: "/a/b/c/d/e",
+				method:  http.MethodGet,
+				handler: benchmarkHandler,
+			},
+		},
+		requestURL:    "/a/b/c/d/e",
+		requestMethod: http.MethodGet,
+	},
+	{
+		name: "very deep wildcard path",
+		register: []handlerArgs{
+			{
+				pattern: "/*/*/*/*/*",
+				method:  http.MethodGet,
+				handler: benchmarkHandler,
+			},
+		},
+		requestURL:    "/a/b/c/d/e",
+		requestMethod: http.MethodGet,
+	},
+}
+
 func BenchmarkServeHTTP(b *testing.B) {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-
-	cases := []struct {
-		name          string
-		register      []handlerArgs
-		requestURL    string
-		requestMethod string
-	}{
-		{
-			name: "one static path",
-			register: []handlerArgs{
-				{
-					pattern: "/foo",
-					method:  http.MethodGet,
-					handler: handler,
-				},
-			},
-			requestURL:    "/foo",
-			requestMethod: http.MethodGet,
-		},
-		{
-			name: "one wildcard path",
-			register: []handlerArgs{
-				{
-					pattern: "/*",
-					method:  http.MethodGet,
-					handler: handler,
-				},
-			},
-			requestURL:    "/foo",
-			requestMethod: http.MethodGet,
-		},
-		{
-			name: "one wildcard path and method",
-			register: []handlerArgs{
-				{
-					pattern: "/*",
-					method:  "*",
-					handler: handler,
-				},
-			},
-			requestURL:    "/foo",
-			requestMethod: http.MethodGet,
-		},
-		{
-			name: "short path with many routes",
-			register: []handlerArgs{
-				{"/", http.MethodGet, handler},
-				{"/openapi.yaml", http.MethodGet, handler},
-				{"/users", http.MethodPost, handler},
-				{"/users/*", http.MethodGet, handler},
-				{"/users/*", http.MethodPatch, handler},
-				{"/users/*", http.MethodDelete, handler},
-				{"/schemas", http.MethodGet, handler},
-				{"/schemas", http.MethodPost, handler},
-				{"/schemas/*", http.MethodGet, handler},
-				{"/events", http.MethodGet, handler},
-				{"/events/*", http.MethodPut, handler},
-				{"/events/*", http.MethodGet, handler},
-				{"/events/*/stats", http.MethodGet, handler},
-				{"/events/*/matches", http.MethodGet, handler},
-				{"/events/*/matches", http.MethodGet, handler},
-				{"/events/*/matches/*", http.MethodGet, handler},
-				{"/events/*/matches/*/reports/*", http.MethodPost, handler},
-			},
-			requestURL:    "/openapi.yaml",
-			requestMethod: "GET",
-		},
-		{
-			name: "very deep static path",
-			register: []handlerArgs{
-				{
-					pattern: "/a/b/c/d/e",
-					method:  http.MethodGet,
-					handler: handler,
-				},
-			},
-			requestURL:    "/a/b/c/d/e",
-			requestMethod: http.MethodGet,
-		},
-		{
-			name: "very deep wildcard path",
-			register: []handlerArgs{
-				{
-					pattern: "/*/*/*/*/*",
-					method:  http.MethodGet,
-					handler: handler,
-				},
-			},
-			requestURL:    "/a/b/c/d/e",
-			requestMethod: http.MethodGet,
-		},
-	}
-
-	for _, tt := range cases {
+	for _, tt := range benchmarkTestCases {
 		b.Run(tt.name, func(b *testing.B) {
 			mux := new(ServeMux)
 
@@ -496,6 +496,20 @@ func BenchmarkServeHTTP(b *testing.B) {
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
 				mux.ServeHTTP(nil, req)
+			}
+		})
+	}
+}
+
+func BenchmarkHandle(b *testing.B) {
+	for _, tt := range benchmarkTestCases {
+		b.Run(tt.name, func(b *testing.B) {
+			mux := new(ServeMux)
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				for _, route := range tt.register {
+					mux.Handle(route.pattern, route.method, route.handler)
+				}
 			}
 		})
 	}
