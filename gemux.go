@@ -97,40 +97,38 @@ func (mux *ServeMux) methodNotAllowedHandler() http.Handler {
 // ("*"), which can be used for a single segment of a path (split on "/") to match
 // anything. A wildcard method of "*" can also be used to match any method.
 func (mux *ServeMux) Handle(pattern string, method string, handler http.Handler) {
-	if pattern == "/" {
-		if mux.handlers == nil {
-			mux.handlers = make(map[string]http.Handler)
+	current := mux
+
+	for head, tail := shiftPath(pattern); head != ""; head, tail = shiftPath(tail) {
+		if head == "*" {
+			if current.wildcardChild == nil {
+				current.wildcardChild = current.newChild()
+			}
+
+			current = current.wildcardChild
+			continue
 		}
 
-		if method == "*" {
-			mux.wildcardHandler = handler
-		} else {
-			mux.handlers[method] = handler
+		if current.children == nil {
+			current.children = make(map[string]*ServeMux)
 		}
 
-		return
-	}
-
-	head, tail := shiftPath(pattern)
-
-	if head == "*" {
-		if mux.wildcardChild == nil {
-			mux.wildcardChild = mux.newChild()
+		if current.children[head] == nil {
+			current.children[head] = current.newChild()
 		}
 
-		mux.wildcardChild.Handle(tail, method, handler)
-		return
+		current = current.children[head]
 	}
 
-	if mux.children == nil {
-		mux.children = make(map[string]*ServeMux)
+	if current.handlers == nil {
+		current.handlers = make(map[string]http.Handler)
 	}
 
-	if mux.children[head] == nil {
-		mux.children[head] = mux.newChild()
+	if method == "*" {
+		current.wildcardHandler = handler
+	} else {
+		current.handlers[method] = handler
 	}
-
-	mux.children[head].Handle(tail, method, handler)
 }
 
 // newChild returns a pointer to a new ServeMux with NotFoundHandler
