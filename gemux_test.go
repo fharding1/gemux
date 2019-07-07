@@ -372,8 +372,8 @@ func ExamplePathParameter() {
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		fmt.Println(PathParameter(ctx, 0))
-		fmt.Println(PathParameter(ctx, 1))
+		fmt.Fprintln(w, PathParameter(ctx, 0))
+		fmt.Fprintln(w, PathParameter(ctx, 1))
 	})
 
 	mux.Handle("/foo/*/bar/*", http.MethodGet, handler)
