@@ -6,6 +6,11 @@
 
 `gemux` is the good enough multiplexer. It aims to provide functionality that is good enough for the majority of HTTP services.
 
+## Disclaimer
+
+This project was mostly just written for fun. While it's intended to be production-ready, you're probably better
+off using an older and more vetted muxer, or [not using one at all](https://blog.merovius.de/2017/06/18/how-not-to-use-an-http-router.html).
+
 ## Usage
 
 ```go
