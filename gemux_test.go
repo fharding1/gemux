@@ -11,7 +11,7 @@ import (
 
 func stringHandler(s string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, s)
+		_, _ = io.WriteString(w, s)
 	})
 }
 
@@ -25,7 +25,7 @@ func pathParametersHandler(t *testing.T, s string, expectedParams []string) http
 			}
 		}
 
-		io.WriteString(w, s)
+		_, _ = io.WriteString(w, s)
 	})
 }
 
@@ -223,7 +223,7 @@ func TestServeMux(t *testing.T) {
 			name: "child custom method not allowed",
 			methodNotAllowedHandler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusAccepted)
-				io.WriteString(w, "accepted?")
+				_, _ = io.WriteString(w, "accepted?")
 			}),
 			register: []handlerArgs{
 				{
