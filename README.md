@@ -1,6 +1,6 @@
 # Good Enough Multiplexer (gemux)
 
-[![Godoc](https://godoc.org/github.com/fharding1/gemux?status.svg)](http://godoc.org/github.com/fharding1/gemux)
+[![pkg.go.dev](https://img.shields.io/badge/go.dev-pkg-blue)](https://pkg.go.dev/github.com/fharding1/gemux?tab=doc)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 `gemux` is the good enough multiplexer. It aims to provide functionality that is good enough for the majority of HTTP services,
