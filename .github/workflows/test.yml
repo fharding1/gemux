@@ -1,0 +1,25 @@
+name: Test
+on: [push]
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version: [1.11, 1.12, 1.13]
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: ${{ matrix.go-version }}
+      id: go
+    - name: Install golint
+      run: go get -u golang.org/x/lint/golint
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
+    - name: Check that gofmt has been run
+      run: diff -u <(echo -n) <(gofmt -d -s .)
+    - name: Run golint
+      run: $(go env GOPATH)/bin/golint
+    - name: Run tests
+      run: go test -v
