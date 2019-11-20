@@ -4,12 +4,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CircleCI](https://circleci.com/gh/fharding1/gemux.svg?style=svg)](https://circleci.com/gh/fharding1/gemux)
 
-`gemux` is the good enough multiplexer. It aims to provide functionality that is good enough for the majority of HTTP services.
-
-## Disclaimer
-
-This project was mostly just written for fun. While it's intended to be production-ready, you're probably better
-off using an older and more vetted muxer, or [not using one at all](https://blog.merovius.de/2017/06/18/how-not-to-use-an-http-router.html).
+`gemux` is the good enough multiplexer. It aims to provide functionality that is good enough for the majority of HTTP services,
+with a focus on a small and easy to test codebase, fair performance, and no dependencies outside the standard library.
 
 ## Usage
 
@@ -31,15 +27,6 @@ func main() {
 }
 ```
 
-## Rationale
-
-In every single HTTP API I write:
-
-* I want to multiplex requests based on the path and the method of the request
-* I want to be able to capture path parameters (e.g. capture `42` from `/posts/42`)
-
-So this is all the functionality `gemux` provides. This is good enough for almost all HTTP APIs. If it isn't good enough for yours, you should use another router, such as [gorilla/mux](https://github.com/gorilla/mux).
-
 ## Features
 
 ### Strict Path Based Routing (with wildcards)
@@ -54,7 +41,8 @@ mux.Handle("/posts/*", http.MethodGet, http.HandlerFunc(getPostHandler))
 
 ### Strict Method Based Routing (with wildcards)
 
-Route based on methods, and allow wildcard methods if you need to write your own method multiplexer (or don't care about methods for some reason).
+Route based on methods, and allow wildcard methods if you need to write your own method multiplexer, or want
+to match on any method.
 
 ```go
 mux.Handle("/users", http.MethodGet, http.HandlerFunc(createPostHandler)) // implement your own method muxer
@@ -94,30 +82,27 @@ mux.MethodNotAllowedHandler = http.HandlerFunc(func(w http.ResponseWriter, r *ht
 })
 ```
 
-### No External Dependencies
+## Benchmarks
 
-`gemux` does not depend upon any libraries outside of the standard library.
+Performed on a Dell XPS 13 with an Intel(R) Core(TM) i7-8550U CPU @ 1.80GHz. `gemux` is fast enough
+that it's performance impact is negligible for most HTTP services.
 
-### It's Fast... Enough.
-
-`gemux` isn't slow, and it's not fast either. If you're writing an HTTP service you're probably doing a bunch of I/O, so your multiplexer speed is almost totally insignificant. Since `gemux` doesn't try to do anything clever to be fast ([the root of all evil](http://wiki.c2.com/?PrematureOptimization)) it's more maintainable than other multiplexers.
-
-## Won't Fix
-
-There many features common in HTTP multiplexers that `gemux` does not and will not support.
-
-### Subrouters
-
-Subrouters are often a source of complexity without any real advantages. If you need subrouters, you can implement your own solution using this library, or just use another library like `gorilla/mux`.
-
-### HandleFunc
-
-There's no reason to have two methods that do the same thing. If you have an `http.HandlerFunc`, wrap it with `http.HandlerFunc` to make it an `http.Handler`.
-
-### Middlewares
-
-A middleware should just be a function that takes an `http.Handler` and returns one. Since you can already use middlewares this way, there's no reason for `gemux` to handle them.
-
-### Method Helpers
-
-There's no reason to have multiple methods for doing the same thing. If you need to handle a `GET`, just pass `http.MethodGet` to `gemux.ServeMux.Handle`.
+```
+goos: linux
+goarch: amd64
+pkg: github.com/fharding1/gemux
+BenchmarkServeHTTP/one_static_path-8         	 7071818	       159 ns/op
+BenchmarkServeHTTP/one_wildcard_path-8       	 2432485	       516 ns/op
+BenchmarkServeHTTP/one_wildcard_path_and_method-8         	 2541954	       453 ns/op
+BenchmarkServeHTTP/short_path_with_many_routes-8          	 6360070	       187 ns/op
+BenchmarkServeHTTP/very_deep_static_path-8                	 1856644	       644 ns/op
+BenchmarkServeHTTP/very_deep_wildcard_path-8              	  499780	      2262 ns/op
+BenchmarkHandle/one_static_path-8                         	 6987087	       170 ns/op
+BenchmarkHandle/one_wildcard_path-8                       	 8136362	       151 ns/op
+BenchmarkHandle/one_wildcard_path_and_method-8            	 8723088	       139 ns/op
+BenchmarkHandle/short_path_with_many_routes-8             	  191238	      6234 ns/op
+BenchmarkHandle/very_deep_static_path-8                   	 1626010	       694 ns/op
+BenchmarkHandle/very_deep_wildcard_path-8                 	 2015136	       616 ns/op
+PASS
+ok  	github.com/fharding1/gemux	18.140s
+```
