@@ -3,7 +3,6 @@ package gemux
 import (
 	"context"
 	"net/http"
-	"path"
 	"strings"
 )
 
@@ -170,11 +169,8 @@ func MethodNotAllowedHandler() http.Handler {
 	})
 }
 
-// shiftPath is (ironically) stolen from
-// https://blog.merovius.de/2017/06/18/how-not-to-use-an-http-router.html
-// and is the fundamental building block for this entire library.
 func shiftPath(p string) (head, tail string) {
-	p = path.Clean("/" + p)
+	p = cleanPath("/" + p)
 	i := strings.Index(p[1:], "/") + 1
 	if i <= 0 {
 		return p[1:], "/"
